@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  tbpl:
+    image: ${IMAGE_TBPL}
+    command: /bin/bash
+    working_dir: /home/tbpl
+    tty: true
+    environment:
+      DOCKER_HOST: tcp://dind:2375
+    volumes:
+      - ${TBPL_ROOT}:/home/tbpl
+
+  dind:
+    image: ${IMAGE_DIND}
+    privileged: true
+    environment:
+      # Unset DOCKER_TLS_CERTDIR to use port 2375 
+      - DOCKER_TLS_CERTDIR=
+    command: "--storage-driver=overlay2"
+    expose:
+      - 2375
+      - 2376
+    volumes:
+      - ${DIND_VARLIBDOCKER}/vld:/var/lib/docker
+      - ${TBPL_ROOT}:/home/tbpl
