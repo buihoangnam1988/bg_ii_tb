@@ -1,4 +1,6 @@
-# Base image: Debian GNU/Linux 12 (bookworm)
+# Base image: continuumio/miniconda3:24.9.2-0
+# OS: Debian GNU/Linux 12 (bookworm)
+# Python: 3.12.7
 FROM continuumio/miniconda3:24.9.2-0
 
 RUN cat /etc/*release*
@@ -24,13 +26,11 @@ RUN /usr/bin/bash -c "curl -s https://get.nextflow.io | bash && chmod +x nextflo
 
 # Create new environment
 ENV TBPL_ENV_NAME tbpl
-RUN conda create --name tbpl python=3.10
+RUN conda create --name ${TBPL_ENV_NAME} python=3.10
 
 # Install python packages
 # Install busco
 RUN git clone https://gitlab.com/ezlab/busco.git && cd busco && conda run -n ${TBPL_ENV_NAME} python -m pip install . && cd /home/tbpl/ && rm -rf busco
-# Install graphviz, checkm-genome
-RUN conda run -n ${TBPL_ENV_NAME} pip install graphviz checkm-genome
 
 # Install FastQC
 RUN mkdir tools && cd tools && wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.9.zip && \
@@ -41,21 +41,24 @@ RUN wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmoma
 unzip Trimmomatic-0.39.zip && rm Trimmomatic-0.39.zip && \
 mv Trimmomatic-0.39/trimmomatic-0.39.jar /usr/local/bin/trimmomatic.jar && rm -rf Trimmomatic-0.39
 
-# Install snippy
-RUN conda run -n ${TBPL_ENV_NAME} pip install snippy rich-argparse 
-RUN conda run -n ${TBPL_ENV_NAME} conda install -c conda-forge libgcc-ng libzlib 
-RUN conda run -n ${TBPL_ENV_NAME} conda install -c bioconda raxml-ng tb-profiler
+# Install snippy, checkm-genome, raxml-ng, tb-profiler
+RUN conda run -n ${TBPL_ENV_NAME} pip install snippy checkm-genome && \
+    conda run -n ${TBPL_ENV_NAME} conda install -c conda-forge libgcc-ng libzlib && \
+    conda run -n ${TBPL_ENV_NAME} conda install -c bioconda raxml-ng tb-profiler && \
+    # Clean conda & R temp files
+    conda clean --all && rm -Rf /temp/*
 
 # Install anvio8
+# Install conda packages
 RUN conda run -n ${TBPL_ENV_NAME} conda install -c conda-forge -c bioconda sqlite prodigal idba mcl muscle=3.8.1551 famsa hmmer diamond \
-    blast megahit spades bowtie2 bwa graphviz "samtools>=1.9" \
-    trimal iqtree trnascan-se fasttree vmatch r-base r-tidyverse \
-    r-optparse r-stringi r-magrittr bioconductor-qvalue meme ghostscript \
-    nodejs
+    blast megahit spades bowtie2 bwa graphviz "samtools>=1.9" trimal iqtree trnascan-se fasttree vmatch r-base r-tidyverse \
+    r-optparse r-stringi r-magrittr bioconductor-qvalue meme ghostscript nodejs && \
+    # Clean conda & R temp files
+    conda clean --all && rm -Rf /temp/*
+# Install gcc
 RUN apt update && apt install gcc -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install anvio
 RUN curl -L https://github.com/merenlab/anvio/releases/download/v8/anvio-8.tar.gz --output anvio-8.tar.gz && \
-    #conda run -n ${TBPL_ENV_NAME} python -m ensurepip --upgrade && \
-    #conda run -n ${TBPL_ENV_NAME} pip install --upgrade setuptools && \
-    #conda run -n ${TBPL_ENV_NAME} python -m pip install --upgrade pip && \
-    #conda run -n ${TBPL_ENV_NAME} pip install numpy==1.26.4 && \
-    conda run -n ${TBPL_ENV_NAME} pip install anvio-8.tar.gz && rm anvio-8.tar.gz
+    conda run -n ${TBPL_ENV_NAME} pip install anvio-8.tar.gz && rm anvio-8.tar.gz && \
+    # Clean conda & R temp files
+    conda clean --all && rm -Rf /temp/*
