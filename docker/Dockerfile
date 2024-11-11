@@ -25,7 +25,7 @@ ENV PATH="${PATH}:/root/.sdkman/candidates/java/17.0.10-tem/bin/"
 RUN /usr/bin/bash -c "curl -s https://get.nextflow.io | bash && chmod +x nextflow && mv nextflow /usr/bin" 
 
 # Create new environment
-ENV TBPL_ENV_NAME tbpl
+ENV TBPL_ENV_NAME=tbpl
 RUN conda create --name ${TBPL_ENV_NAME} python=3.10
 
 # Install python packages
@@ -62,3 +62,11 @@ RUN curl -L https://github.com/merenlab/anvio/releases/download/v8/anvio-8.tar.g
     conda run -n ${TBPL_ENV_NAME} pip install anvio-8.tar.gz && rm anvio-8.tar.gz && \
     # Clean conda & R temp files
     conda clean --all && rm -Rf /temp/*
+
+# Install multiqc
+RUN conda run -n ${TBPL_ENV_NAME} conda install -c bioconda multiqc mlst && \
+    conda run -n ${TBPL_ENV_NAME} pip install docopt && \
+    apt update && apt install -y libtiff-dev && cd /usr/lib/x86_64-linux-gnu/ && ln -s libtiff.so.6 libtiff.so.5 && \
+    # Clean conda & R temp files
+    conda clean --all && rm -Rf /temp/* && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*

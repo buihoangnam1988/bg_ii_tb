@@ -9,7 +9,11 @@ services:
     environment:
       DOCKER_HOST: tcp://dind:2375
     volumes:
-      - ${TBPL_ROOT}:/home/tbpl
+      - ./pipeline:/home/tbpl/pipeline/
+      - ${TBPL_ROOT}/inp/:/home/tbpl/input/
+      - ${TBPL_ROOT}/out/:/home/tbpl/output/
+      - ${TBPL_ROOT}/omd/:/home/tbpl/omicsdata/
+      - ${TBPL_ROOT}/stc/:/home/tbpl/staticdata/
 
   dind:
     image: ${IMAGE_DIND}
@@ -23,4 +27,7 @@ services:
       - 2376
     volumes:
       - ${DIND_VARLIBDOCKER}/vld:/var/lib/docker
-      - ${TBPL_ROOT}:/home/tbpl
+      - ${TBPL_ROOT}/inp/:/home/tbpl/input/
+      - ${TBPL_ROOT}/out/:/home/tbpl/output/
+      - ${TBPL_ROOT}/omd/:/home/tbpl/omicsdata/
+      - ${TBPL_ROOT}/stc/:/home/tbpl/staticdata/
