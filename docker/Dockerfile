@@ -64,16 +64,16 @@ RUN curl -L https://github.com/merenlab/anvio/releases/download/v8/anvio-8.tar.g
     conda clean --all && rm -Rf /temp/*
 
 # Install multiqc
-RUN conda run -n ${TBPL_ENV_NAME} conda install -c bioconda multiqc mlst && \
-    conda run -n ${TBPL_ENV_NAME} pip install docopt && \
+RUN conda run -n ${TBPL_ENV_NAME} conda install -c bioconda multiqc && \
+    #conda run -n ${TBPL_ENV_NAME} pip install docopt && \
     apt update && apt install -y libtiff-dev && cd /usr/lib/x86_64-linux-gnu/ && ln -s libtiff.so.6 libtiff.so.5 && \
     # Clean conda & R temp files
     conda clean --all && rm -Rf /temp/* && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Bacannot pipeline
-RUN echo $PATH > /home/tbpl/path1.txt
-RUN conda run -n ${TBPL_ENV_NAME} nextflow pull fmalmeida/bacannot
-RUN echo $PATH > /home/tbpl/path2.txt
-ENV PATH="${PATH}:/root/.nextflow/assets/fmalmeida/bacannot/bin"
-RUN echo $PATH > /home/tbpl/path3.txt
+#RUN echo $PATH > /home/tbpl/path1.txt
+#RUN conda run -n ${TBPL_ENV_NAME} nextflow pull fmalmeida/bacannot
+#RUN echo $PATH > /home/tbpl/path2.txt
+#ENV PATH="${PATH}:/root/.nextflow/assets/fmalmeida/bacannot/bin"
+#RUN echo $PATH > /home/tbpl/path3.txt
