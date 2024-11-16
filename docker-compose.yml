@@ -14,6 +14,7 @@ services:
       - ${TBPL_ROOT}/out/:/home/tbpl/output/
       - ${TBPL_ROOT}/omd/:/home/tbpl/omicsdata/
       - ${TBPL_ROOT}/stc/:/home/tbpl/staticdata/
+      - ${TBPL_ROOT}/nfa/:/root/.nextflow/assets/
 
   dind:
     image: ${IMAGE_DIND}
@@ -31,3 +32,4 @@ services:
       - ${TBPL_ROOT}/out/:/home/tbpl/output/
       - ${TBPL_ROOT}/omd/:/home/tbpl/omicsdata/
       - ${TBPL_ROOT}/stc/:/home/tbpl/staticdata/
+      - ${TBPL_ROOT}/nfa/:/root/.nextflow/assets/
