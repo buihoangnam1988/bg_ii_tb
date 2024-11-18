@@ -1,9 +1,9 @@
 # Pull bacannot pipeline, stored in /root/.nextflow/assets/fmalmeida/bacannot
 nextflow pull fmalmeida/bacannot
 # Allow calling .py script directly for bacannot pipelines
-export PATH=$PATH:/root/.nextflow/assets/fmalmeida/bacannot/bin
+#export PATH=$PATH:/root/.nextflow/assets/fmalmeida/bacannot/bin
 # Pull Zenodo database (Prebuilt)
-nextflow run fmalmeida/bacannot --get_zenodo_db --output /home/tbpl/omicsdata/zenodo/ -profile docker
+#nextflow run fmalmeida/bacannot --get_zenodo_db --output /home/tbpl/omicsdata/zenodo/ -profile docker
 # Build my own database
 cd /home/tbpl/output
 nextflow run fmalmeida/bacannot --get_dbs --output bacannot_dbs -profile docker
@@ -51,7 +51,9 @@ for i in "${SAMPLES[@]}"; do echo $i; done;
 export BACANOTDB=/home/tbpl/output/bacannot_dbs
 #export PATH=$PATH:/root/.nextflow/assets/fmalmeida/bacannot/bin
 # Run Bacannot pipeline
+# For running
 nextflow run fmalmeida/bacannot --input /home/tbpl/output/samplesheet.yaml --output /home/tbpl/output/2_Assembly --bacannot_db $BACANOTDB --resfinder_species "Mycobacterium tuberculosis" --max_cpus 10 -profile docker
+
 # Resume Bacannot pipeline
 # Fix 'command not found' error: https://github.com/nextflow-io/nextflow/discussions/4783
 # * Method 1: export NXF_VER=21.10.6 before running the pipeline: --> does not work,

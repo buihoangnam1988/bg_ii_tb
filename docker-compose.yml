@@ -14,6 +14,7 @@ services:
       - ${TBPL_ROOT}/out/:/home/tbpl/output/
       - ${TBPL_ROOT}/omd/:/home/tbpl/omicsdata/
       - ${TBPL_ROOT}/stc/:/home/tbpl/staticdata/
+      # Map Nextflow cache directory to a shared volume
       - ${TBPL_ROOT}/nfa/:/root/.nextflow/assets/
 
   dind:
@@ -32,4 +33,5 @@ services:
       - ${TBPL_ROOT}/out/:/home/tbpl/output/
       - ${TBPL_ROOT}/omd/:/home/tbpl/omicsdata/
       - ${TBPL_ROOT}/stc/:/home/tbpl/staticdata/
+      # Map Nextflow cache directory to a shared volume
       - ${TBPL_ROOT}/nfa/:/root/.nextflow/assets/
