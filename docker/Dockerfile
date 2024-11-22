@@ -42,7 +42,7 @@ unzip Trimmomatic-0.39.zip && rm Trimmomatic-0.39.zip && \
 mv Trimmomatic-0.39/trimmomatic-0.39.jar /usr/local/bin/trimmomatic.jar && rm -rf Trimmomatic-0.39
 
 # Install snippy, checkm-genome, raxml-ng, tb-profiler
-RUN conda run -n ${TBPL_ENV_NAME} pip install snippy checkm-genome && \
+RUN conda run -n ${TBPL_ENV_NAME} conda install -c conda-forge -c bioconda -c defaults bcftools snippy checkm-genome && \
     conda run -n ${TBPL_ENV_NAME} conda install -c conda-forge libgcc-ng libzlib && \
     conda run -n ${TBPL_ENV_NAME} conda install -c bioconda raxml-ng tb-profiler && \
     # Clean conda & R temp files
@@ -64,9 +64,10 @@ RUN curl -L https://github.com/merenlab/anvio/releases/download/v8/anvio-8.tar.g
     conda clean --all && rm -Rf /temp/*
 
 # Install multiqc
-RUN conda run -n ${TBPL_ENV_NAME} conda install -c bioconda multiqc && \
+RUN conda run -n ${TBPL_ENV_NAME} conda install -c bioconda multiqc pplacer troika-tb && \
     #conda run -n ${TBPL_ENV_NAME} pip install docopt && \
     apt update && apt install -y libtiff-dev && cd /usr/lib/x86_64-linux-gnu/ && ln -s libtiff.so.6 libtiff.so.5 && \
+    apt update && apt install -y libgsl-dev && cd /usr/lib/x86_64-linux-gnu/ && ln -s libgsl.so.27 libgsl.so.25 && \
     # Clean conda & R temp files
     conda clean --all && rm -Rf /temp/* && \
     apt-get clean && rm -rf /var/lib/apt/lists/*

@@ -6,13 +6,14 @@ cd /home/tbpl/output/01_QC/preqc && multiqc .
 
 # Run trimmomatic (Dr Michael will prepare) =============================================================================
 mkdir -p /home/tbpl/output/01_QC/postqc
+export INPDIR=/home/tbpl/input
+export OUTDIR=/home/tbpl/output/01_QC/postqc
 declare -a SAMPLES=( "29" )
 for i in "${SAMPLES[@]}"; do 
-    echo $i;
-    trimmomatic PE -threads 80 -phred33 -trimlog ${i}_trim.log ${i}_1.fq.gz \
-    ${i}_2.fq.gz ${i}_R1_paired.fastq.gz ${i}_R1_unpaired.fastq.gz \
-    ${i}_R2_paired.fastq.gz ${i}_R2_unpaired.fastq.gz ILLUMINACLIP:/home/ec2- \
-    user/data/trimmomatic/adapters/Aviti.fa:2:30:10 LEADING:3 TRAILING:3 \
+    echo "Processing sample $i";
+    mkdir $OUTDIR/$i/;
+    trimmomatic PE -threads 48 -phred33 -trimlog $OUTDIR/${i}/${i}_trim.log $INPDIR/${i}_R1_paired.fastq.gz $INPDIR/${i}_R2_paired.fastq.gz $OUTDIR/${i}/${i}_R1_trimmed_paired.fastq.gz $OUTDIR/${i}/${i}_R2_trimmed_paired.fastq.gz $OUTDIR/${i}/${i}_R1_trimmed_unpaired.fastq.gz $OUTDIR/${i}/${i}_R2_trimmed_unpaired.fastq.gz \
+    ILLUMINACLIP:/home/tbpl/omicsdata/adapters/Aviti.fa:2:30:10 LEADING:3 TRAILING:3 \
     SLIDINGWINDOW:4:15 MINLEN:36;
 done;
 
@@ -65,3 +66,68 @@ nextflow run fmalmeida/bacannot --input /home/tbpl/output/samplesheet.yaml --out
 #             Note 1: I did this            nano /root/.nextflow/assets/fmalmeida/bacannot/nextflow.config
 #nextflow run fmalmeida/bacannot --input /home/tbpl/output/samplesheet.yaml --output /home/tbpl/output/2_Assembly --bacannot_db $BACANOTDB --resfinder_species "Mycobacterium tuberculosis" --max_cpus 10 -profile docker -resume
 
+# Run BUSCO ===============================================================================
+nextflow pull metashot/busco
+export INPDIR=/home/tbpl/output/2_Assembly
+export OUTDIR=/home/tbpl/output/2_Assembly
+declare -a SAMPLES=( "29" "31" )
+for i in "${SAMPLES[@]}"; do 
+    echo "Processing BUSCO for sample $i"
+    nextflow run metashot/busco --genomes $INPDIR/${i}/assembly/assembly.fasta --outdir $OUTDIR/${i}/assembly/${i}.busco
+done;
+
+# Run CHECKM ==============================================================================
+# Note: -x [fasta/faa/fa/fna]
+#       * There must be prepared data, downloaded at https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz
+#         Saved path: /home/tbpl/omicsdata/checkm_db
+#         Load to checkm by command `checkm data setRoot /home/tbpl/omicsdata/checkm_db`
+export INPDIR=/home/tbpl/output/2_Assembly
+export OUTDIR=/home/tbpl/output/2_Assembly/checkm/
+declare -a SAMPLES=( "29" "31" )
+mkdir -p $INPDIR/bin/
+mkdir -p $OUTDIR
+for i in "${SAMPLES[@]}"; do 
+    echo "Copy input file for sample $i to the bin folder";
+    cp $INPDIR/${i}/assembly/assembly.fasta $INPDIR/bin/${i}.fasta
+done;
+# Set the root of DB folder
+checkm data setRoot /home/tbpl/omicsdata/checkm_db
+# Run checkm
+checkm lineage_wf -t 48 -x fasta $INPDIR/bin/ $OUTDIR --reduced_tree
+
+# Troika ============================================================================
+# Generate input file # tab-delimited file 3 columns isolate_id path_to_r1 path_to_r2
+#declare -a SAMPLES=( "29" "31" )
+#export INPDIR=/home/tbpl/input
+#for i in "${SAMPLES[@]}"; do 
+#    echo -e "$i\t$INPDIR/${i}_R1_paired.fastq.gz\t$INPDIR/${i}_R2_paired.fastq.gz" >> $INPDIR/inputfile.tsv
+#done;
+## Run Troika
+#mkdir -p /home/tbpl/output/04_AMR/tb-profiler
+#export OUTDIR=/home/tbpl/output/04_AMR/tb-profiler
+#troika --input_file  $INPDIR/inputfile.tsv \
+#    --workdir $OUTDIR \
+#    --profiler_threads 48 \
+#    --kraken_threads 48 \
+#    --snippy_threads 48 --mode normal \
+#    --db_version TBProfiler-20190820 --min_cov 40 \
+#    --min_aln 80
+
+# Run SNIPPY ==============================================================================
+export OUTDIR=/home/tbpl/output/04_AMR/snippy
+mkdir -p $OUTDIR
+for i in "${SAMPLES[@]}"; do 
+    echo "Run snippy for sample $i";
+    snippy --force --cpus 16 --outdir $OUTDIR --ref /home/tbpl/omicsdata/snippy_db/H37Rv.gbk --R1 $INPDIR/${i}_R1_paired.fastq.gz --R2 $INPDIR/${i}_R2_paired.fastq.gz
+done;
+
+# Run RAxML ==============================================================================
+
+# Run TB-Profiler ==============================================================================
+export OUTDIR=/home/tbpl/output/04_AMR/tb-profiler
+mkdir -p $OUTDIR
+for i in "${SAMPLES[@]}"; do 
+    echo "Run tb-profiler for sample $i"; 
+    tb-profiler profile -1 $INPDIR/${i}_R1_paired.fastq.gz -2 $INPDIR/${i}_R2_paired.fastq.gz -p $i --txt -t 16
+done;
+#tb-profiler collate
